@@ -2,7 +2,6 @@ package services
 
 import (
 	"emulatortm/internal/models"
-	"fmt"
 	"log"
 	"os"
 )
@@ -23,7 +22,7 @@ func ReplaceDrivers(fas *models.FAS) error {
 		sModifDriverFileName = "DENS_ANLNEW.spt"
 	}
 
-	binRoot := "C:/Users/matiukovgv/Desktop/EmulatorTm/bin"
+	binRoot := "bin"
 	sys32root := "c:/Windows/System32/ipkload"
 	sysWOW64root := "c:/Windows/SysWOW64/IPKLoad"
 	//меняем дрова
@@ -36,15 +35,9 @@ func ReplaceDrivers(fas *models.FAS) error {
 		log.Fatal(err)
 	}*/
 
-	err := os.Remove(sys32root + "/" + sOrigDriverFileName)
-	if err != nil {
-		log.Fatal(err)
-	}
+	os.Remove(sys32root + "/" + sOrigDriverFileName)
 
-	err = os.Remove(sysWOW64root + "/" + sOrigDriverFileName)
-	if err != nil {
-		log.Fatal(err)
-	}
+	os.Remove(sysWOW64root + "/" + sOrigDriverFileName)
 
 	sourceDrive, err := os.ReadFile(binRoot + "/" + sModifDriverFileName)
 	if err != nil {
@@ -53,12 +46,10 @@ func ReplaceDrivers(fas *models.FAS) error {
 
 	err = os.WriteFile(sys32root+"/"+sOrigDriverFileName, sourceDrive, 0666)
 	if err != nil {
-		fmt.Println("fff")
 		log.Fatal(err)
 	}
 	err = os.WriteFile(sysWOW64root+"/"+sOrigDriverFileName, sourceDrive, 0666)
 	if err != nil {
-		fmt.Println("fff")
 		log.Fatal(err)
 	}
 
@@ -81,7 +72,7 @@ func ReturnDrivers(fas *models.FAS) error {
 		//sModifDriverFileName = "DENS_ANLNEW.spt"
 	}
 
-	binRoot := "C:/Users/matiukovgv/Desktop/EmulatorTm/bin"
+	binRoot := "bin"
 	sys32root := "c:/Windows/System32/ipkload"
 	sysWOW64root := "c:/Windows/SysWOW64/IPKLoad"
 	//меняем дрова
@@ -110,14 +101,47 @@ func ReturnDrivers(fas *models.FAS) error {
 
 	err = os.WriteFile(sys32root+"/"+sOrigDriverFileName, sourceDrive, 0666)
 	if err != nil {
-		fmt.Println("fff")
 		log.Fatal(err)
 	}
 	err = os.WriteFile(sysWOW64root+"/"+sOrigDriverFileName, sourceDrive, 0666)
 	if err != nil {
-		fmt.Println("fff")
 		log.Fatal(err)
 	}
-	//врубаем ипк
 	return nil
+}
+
+func InstallDrivers() {
+	anlBrtDriverFileName := "ANLBRT_3.spt"
+	anlNewDriverFileName := "ANLNEW_3.spt"
+	binRoot := "bin"
+	sys32root := "c:/Windows/System32/ipkload"
+	sysWOW64root := "c:/Windows/SysWOW64/IPKLoad"
+	//-----------------------------------12 bit driver install----------------------
+	sourceDrive, err := os.ReadFile(binRoot + "/" + anlBrtDriverFileName)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = os.WriteFile(sys32root+"/"+anlBrtDriverFileName, sourceDrive, 0666)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = os.WriteFile(sysWOW64root+"/"+anlBrtDriverFileName, sourceDrive, 0666)
+	if err != nil {
+		log.Fatal(err)
+	}
+	//-----------------------------------16 bit driver install----------------------
+	sourceDrive2, err := os.ReadFile(binRoot + "/" + anlNewDriverFileName)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = os.WriteFile(sys32root+"/"+anlNewDriverFileName, sourceDrive2, 0666)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = os.WriteFile(sysWOW64root+"/"+anlNewDriverFileName, sourceDrive2, 0666)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

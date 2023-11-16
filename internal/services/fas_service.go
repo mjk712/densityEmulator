@@ -2,17 +2,15 @@ package services
 
 import (
 	"emulatortm/internal/models"
-	"log"
+	"fmt"
 )
 
-func GetFAS(analogDevActive bool) (FAS *models.FAS) {
+func GetFAS() (FAS *models.FAS) {
 	version, err := checkFasVersion()
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
 	}
-
 	return &models.FAS{
-		Connected: analogDevActive,
-		Version:   version,
+		Version: version,
 	}
 }
