@@ -8,8 +8,6 @@ import (
 
 func ReplaceDrivers(fas *models.FAS) error {
 
-	//вырубаем ипк
-
 	var sOrigDriverFileName string
 	var sModifDriverFileName string
 
@@ -25,15 +23,6 @@ func ReplaceDrivers(fas *models.FAS) error {
 	binRoot := "bin"
 	sys32root := "c:/Windows/System32/ipkload"
 	sysWOW64root := "c:/Windows/SysWOW64/IPKLoad"
-	//меняем дрова
-	/*err := os.Rename(binRoot+"/"+sModifDriverFileName, sys32root+"/"+sOrigDriverFileName)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = os.Rename(binRoot+"/"+sModifDriverFileName, sysWOW64root+"/"+sOrigDriverFileName)
-	if err != nil {
-		log.Fatal(err)
-	}*/
 
 	os.Remove(sys32root + "/" + sOrigDriverFileName)
 
@@ -53,37 +42,23 @@ func ReplaceDrivers(fas *models.FAS) error {
 		log.Fatal(err)
 	}
 
-	//врубаем ипк
 	return nil
 }
 
 func ReturnDrivers(fas *models.FAS) error {
-	//вырубаем ипк
 
 	var sOrigDriverFileName string
-	//var sModifDriverFileName string
-
 	switch fas.Version {
 	case "12 Bit":
 		sOrigDriverFileName = "ANLBRT_3.spt"
-		//sModifDriverFileName = "DENS_ANLBRT.spt"
 	case "16 Bit":
 		sOrigDriverFileName = "ANLNEW_3.spt"
-		//sModifDriverFileName = "DENS_ANLNEW.spt"
 	}
 
 	binRoot := "bin"
 	sys32root := "c:/Windows/System32/ipkload"
 	sysWOW64root := "c:/Windows/SysWOW64/IPKLoad"
 	//меняем дрова
-	/*err := os.Rename(sys32root+"/"+sOrigDriverFileName, binRoot+"/"+sModifDriverFileName)
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = os.Rename(sysWOW64root+"/"+sOrigDriverFileName, binRoot+"/"+sModifDriverFileName)
-	if err != nil {
-		log.Fatal(err)
-	}*/
 	err := os.Remove(sys32root + "/" + sOrigDriverFileName)
 	if err != nil {
 		log.Fatal(err)

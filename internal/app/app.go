@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"image/color"
 	"os"
+	"os/exec"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -35,15 +36,13 @@ var start bool
 
 var fasVersion string
 
-// shoud i add stage checking
+// Проверка на версию ФАС, 12 или 16 бит
 func stage0Check() {
 	for range time.Tick(time.Second / 2) {
 		ipkBox.AnalogDev.Open()
 		ipkBox.BinDev.Open()
 		if ipkBox.AnalogDev.Active() && !start {
-			//fmt.Println(start)
 			start = true
-			//fmt.Println("000")
 			fas := services.GetFAS()
 			readyToStart = true
 			ipkBox.AnalogDev.Close()
@@ -53,10 +52,11 @@ func stage0Check() {
 	}
 
 }
+
+// Определили версию ФАС, теперь показываем её пользователю
 func check1Stage(checkFasModelLabel *canvas.Text) {
 	for range time.Tick(time.Second / 2) {
 		if readyToStart {
-			//fmt.Println("asas")
 			time.Sleep(50 * time.Millisecond)
 			readyToStart = false
 			checkFasModelLabel.Color = color.RGBA{R: 200, G: 200, B: 200, A: 255}
@@ -66,6 +66,8 @@ func check1Stage(checkFasModelLabel *canvas.Text) {
 		}
 	}
 }
+
+// Ждём пока будет выключен ИПК и устанавливаем правильные драйвера
 func check2Stage(checkIpkDisonnectLabel *canvas.Text, w fyne.Window) {
 	for range time.Tick(time.Second / 2) {
 		if fasModelDetected {
@@ -92,6 +94,8 @@ func check2Stage(checkIpkDisonnectLabel *canvas.Text, w fyne.Window) {
 		}
 	}
 }
+
+// Ожидаем соединения с ФДС, а также устанавливаем режим стоянки
 func check3Stage(checkFdsLabel *canvas.Text) {
 	for range time.Tick(time.Second / 2) {
 		if driversInstalled {
@@ -105,15 +109,22 @@ func check3Stage(checkFdsLabel *canvas.Text) {
 				checkFdsLabel.Color = color.RGBA{R: 200, G: 200, B: 200, A: 255}
 				checkFdsLabel.Text = "3.Соединение с ФДС активно"
 				checkFdsLabel.Refresh()
+				// подключаем ЦАП8 и ЦАП9
 				channelN9 := new(ipk.DAC)
 				channelN9.Init(ipkBox.AnalogDev, ipk.DAC9)
+				channelN8 := new(ipk.DAC)
+				channelN8.Init(ipkBox.AnalogDev, ipk.DAC8)
+				SensorIR.Init(channelN8, ipk.DACAtmosphere, 10)
 				SensorTC.Init(channelN9, ipk.DACAtmosphere, 10)
 				ipkBox.BinDev.Set50V(1, true)
+				SensorIR.Set(8.6)
 				fdsDetected = true
 			}
 		}
 	}
 }
+
+// Ожидаем соединения с ФАС
 func check4Stage(checkFasLabel *canvas.Text, ch chan (bool)) {
 	for range time.Tick(time.Second / 2) {
 		if driversInstalled {
@@ -133,6 +144,8 @@ func check4Stage(checkFasLabel *canvas.Text, ch chan (bool)) {
 		}
 	}
 }
+
+// функция перехода в окно основной программы
 func transferToSecondWindow(w fyne.Window, w2 fyne.Window, errWindow fyne.Window) {
 	for range time.Tick(time.Second / 2) {
 		if fasDetected && fdsDetected {
@@ -153,14 +166,22 @@ func transferToSecondWindow(w fyne.Window, w2 fyne.Window, errWindow fyne.Window
 	}
 }
 
+// Справка
+func aboutHelp() {
+	err := exec.Command("cmd", "/C", ".\\bin\\index.html").Run()
+	if err != nil {
+		fmt.Println(err)
+		fmt.Println("Ошибка открытия файла справки")
+	}
+}
+
 func Run() {
-	//c4 := make(chan string)
-	//	c2 := make(chan string)
 	c3 := make(chan bool)
 	//start
 	ipkBox.AnalogDev = new(ipk.AnalogDevice)
 	ipkBox.BinDev = new(ipk.BinaryDevice)
 	ipkBox.FreqDev = new(ipk.FreqDevice)
+	//При повторном включении ИПК надо заного инициализировать ФАС и ФДС
 	go func() {
 		for range time.Tick(time.Second / 2) {
 			if driversInstalled {
@@ -169,7 +190,6 @@ func Run() {
 			}
 		}
 	}()
-	//ipkBox.AnalogDev.Open() //открываем ФАС-3
 
 	ipkBox.BinDev.Open() //открываем ФДС-3
 	defer ipkBox.BinDev.Close()
@@ -181,34 +201,23 @@ func Run() {
 	w := a.NewWindow("Эмулятор ТМ")
 	w2 := a.NewWindow("Эмулятор ТМ")
 	errWindow := a.NewWindow("Эмулятор ТМ")
-	faqMenuWindow := a.NewWindow("Справка Эмулятор ТМ")
 	errWindow.SetMaster()
 	w.Resize(fyne.NewSize(300, 300))
-	//img := canvas.NewImageFromFile("re.png")
-	attention1 := canvas.NewText("1. Драйвера ИПК должны быть установлены по путям: ", color.Black)
-	attention2 := canvas.NewText("C:/Windows/System32/ipkload", color.Black)
-	attention3 := canvas.NewText("C:/Windows/SysWOW64/IPKLoad", color.Black)
-	attention4 := canvas.NewText("2. Программа измеряет плотность последством отправки данных на модифицированный драйвер.", color.Black)
-	attention5 := canvas.NewText("3. После закрытия программы рекомендуется перезагрузить ИПК.", color.Black)
-	err1 := canvas.NewText("Внимание! После закрытия программы прежде чем продолжать работу с ИПК-3, необходимо в обязательном порядке", color.RGBA{255, 0, 0, 170})
-	err2 := canvas.NewText("выключить питание ФПС-3 (СЕТЬ ВЫКЛ). После этого можно снова включить питание и продолжать работу.", color.RGBA{255, 0, 0, 170})
-	err3 := canvas.NewText("Если этого не сделать, ФАС будет работать некорректно до тех пор, пока питание не будет выключено.", color.RGBA{255, 0, 0, 170})
+
+	err1 := canvas.NewText("Внимание! После закрытия программы прежде чем продолжать работу с ИПК-3,", color.RGBA{255, 0, 0, 190})
+	err2 := canvas.NewText("необходимо в обязательном порядке выключить питание ФПС-3 (СЕТЬ ВЫКЛ).", color.RGBA{255, 0, 0, 190})
+	err3 := canvas.NewText("После этого можно снова включить питание и продолжать работу.", color.RGBA{255, 0, 0, 190})
+	err4 := canvas.NewText("Если этого не сделать, ФАС будет работать некорректно до тех пор,", color.RGBA{255, 0, 0, 190})
+	err5 := canvas.NewText("пока питание не будет выключено.", color.RGBA{255, 0, 0, 170})
 	errWindow.SetOnClosed(func() { os.Exit(0) })
-	content := container.NewVBox(attention1, attention2, attention3, attention4, attention5)
-	faqMenuWindow.Resize(fyne.Size{Width: 670, Height: 420})
-	faqMenuWindow.CenterOnScreen()
-	faqMenuWindow.SetContent(content)
-	faqMenuWindow.SetCloseIntercept(func() {
-		faqMenuWindow.Hide()
-	})
+
 	faqMenu := fyne.NewMenuItem("Справка", func() {
-		fmt.Println("fff")
-		faqMenuWindow.Show()
+		aboutHelp()
 	})
 
 	errWindow.Resize(fyne.Size{Width: 400, Height: 400})
 	errWindow.CenterOnScreen()
-	errWindow.SetContent(container.NewVBox(err1, err2, err3))
+	errWindow.SetContent(container.NewVBox(err1, err2, err3, err4, err5))
 
 	newMenu := fyne.NewMenu("Info", faqMenu)
 	mainMenu := fyne.NewMainMenu(newMenu)
@@ -227,6 +236,7 @@ func Run() {
 	driversInstalled = false
 	fasModelDetected = false
 	readyToStart = false
+	//Перед началом стадий, устанавливаем актуальные версии драйверов ФАС
 	services.InstallDrivers()
 	go stage0Check()
 	go check1Stage(checkFasModelLabel)
