@@ -59,11 +59,20 @@ func InitDensity(editDensityText string, fas *ipk.AnalogDevice) {
 	if err != nil {
 		return
 	}
+	fass := GetFAS()
 
-	uBasePressure = GetDacAmt(9.0, 4095, 20) //3900
-	uTopPressure = GetDacAmt(8.8, 4095, 20)  //3850
-	uMidPressure = GetDacAmt(8.4, 4095, 20)  //3580
-	uLowPressure = GetDacAmt(7.9, 4095, 20)  //3167
+	switch fass.Version {
+	case "12 Bit":
+		uBasePressure = GetDacAmt(9.0, 4095, 20) //3900
+		uTopPressure = GetDacAmt(8.8, 4095, 20)  //3850
+		uMidPressure = GetDacAmt(8.4, 4095, 20)  //3580
+		uLowPressure = GetDacAmt(7.9, 4095, 20)  //3167
+	case "16 Bit":
+		uBasePressure = GetDacAmt(9.0, 0xFFFF, 20) //3900
+		uTopPressure = GetDacAmt(8.8, 0xFFFF, 20)  //3850
+		uMidPressure = GetDacAmt(8.4, 0xFFFF, 20)  //3580
+		uLowPressure = GetDacAmt(7.9, 0xFFFF, 20)  //3167
+	}
 
 	var data densityTestData
 
@@ -91,11 +100,20 @@ func ResetDensity(editDensityText string, fas *ipk.AnalogDevice) {
 	if err != nil {
 		return
 	}
+	fass := GetFAS()
 
-	uBasePressure = GetDacAmt(9.0, 4095, 20) //3900
-	uTopPressure = GetDacAmt(8.8, 4095, 20)  //3850
-	uMidPressure = GetDacAmt(8.4, 4095, 20)  //3580
-	uLowPressure = GetDacAmt(7.9, 4095, 20)  //3167
+	switch fass.Version {
+	case "12 Bit":
+		uBasePressure = GetDacAmt(9.0, 4095, 20) //3900
+		uTopPressure = GetDacAmt(8.8, 4095, 20)  //3850
+		uMidPressure = GetDacAmt(8.4, 4095, 20)  //3580
+		uLowPressure = GetDacAmt(7.9, 4095, 20)  //3167
+	case "16 Bit":
+		uBasePressure = GetDacAmt(9.0, 0xFFFF, 20) //3900
+		uTopPressure = GetDacAmt(8.8, 0xFFFF, 20)  //3850
+		uMidPressure = GetDacAmt(8.4, 0xFFFF, 20)  //3580
+		uLowPressure = GetDacAmt(7.9, 0xFFFF, 20)  //3167
+	}
 
 	var data densityTestData
 

@@ -7,6 +7,7 @@ import (
 	"image/color"
 	"os"
 	"os/exec"
+	"syscall"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -112,14 +113,16 @@ func check3Stage(checkFdsLabel *canvas.Text) {
 				checkFdsLabel.Text = "3.Соединение с ФДС активно"
 				checkFdsLabel.Refresh()
 				// подключаем ЦАП8 и ЦАП9
-				channelN9 := new(ipk.DAC)
-				channelN9.Init(ipkBox.AnalogDev, ipk.DAC9)
 				channelN8 := new(ipk.DAC)
 				channelN8.Init(ipkBox.AnalogDev, ipk.DAC8)
+				channelN9 := new(ipk.DAC)
+				channelN9.Init(ipkBox.AnalogDev, ipk.DAC9)
 				SensorIR.Init(channelN8, ipk.DACAtmosphere, 10)
 				SensorTC.Init(channelN9, ipk.DACAtmosphere, 10)
 				ipkBox.BinDev.Set50V(1, true)
-				SensorIR.Set(8.6)
+				ipkBox.BinDev.Set50V(4, false)
+				SensorIR.Set(8.8)
+				SensorTC.Set(8.6)
 				fdsDetected = true
 			}
 		}
@@ -170,7 +173,9 @@ func transferToSecondWindow(w fyne.Window, w2 fyne.Window, errWindow fyne.Window
 
 // Справка
 func aboutHelp() {
-	err := exec.Command("cmd", "/C", ".\\bin\\index.html").Run()
+	cmd := exec.Command("cmd", "/C", ".\\bin\\index.html")
+	cmd.SysProcAttr = &syscall.SysProcAttr{HideWindow: true}
+	err := cmd.Start()
 	if err != nil {
 		fmt.Println(err)
 		fmt.Println("Ошибка открытия файла справки")

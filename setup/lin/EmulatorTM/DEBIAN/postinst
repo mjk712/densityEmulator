@@ -1,0 +1,6 @@
+#!/bin/bash
+
+#  cp /usr/share/applications/testSrs3.desktop ~/Desktop/
+
+chmod -R 777 /usr/share/EmulatorTM/
+

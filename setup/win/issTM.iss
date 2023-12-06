@@ -58,15 +58,40 @@ Source: "setup\libusb-1.0.pdb"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]
-Root: HKA; Subkey: "Software\Classes\.myp\OpenWithProgids"; ValueType: string; ValueName: "EmulatorTMFile.myp"; ValueData: ""; Flags: uninsdeletevalue
-Root: HKA; Subkey: "Software\Classes\EmulatorTMFile.myp"; ValueType: string; ValueName: ""; ValueData: "EmulatorTM File"; Flags: uninsdeletekey
-Root: HKA; Subkey: "Software\Classes\EmulatorTMFile.myp\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\EmulatorTM.exe,0"
-Root: HKA; Subkey: "Software\Classes\EmulatorTMFile.myp\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\EmulatorTM.exe"" ""%1"""
-Root: HKA; Subkey: "Software\Classes\Applications\EmulatorTM.exe\SupportedTypes"; ValueType: string; ValueName: ".myp"; ValueData: ""
+Root: HKCU; Subkey: "Software\Classes\.myp\OpenWithProgids"; ValueType: string; ValueName: "EmulatorTMFile.myp"; ValueData: ""; Flags: uninsdeletevalue
+Root: HKCU; Subkey: "Software\Classes\EmulatorTMFile.myp"; ValueType: string; ValueName: ""; ValueData: "EmulatorTM File"; Flags: uninsdeletekey
+Root: HKCU; Subkey: "Software\Classes\EmulatorTMFile.myp\DefaultIcon"; ValueType: string; ValueName: ""; ValueData: "{app}\EmulatorTM.exe,0"
+Root: HKCU; Subkey: "Software\Classes\EmulatorTMFile.myp\shell\open\command"; ValueType: string; ValueName: ""; ValueData: """{app}\EmulatorTM.exe"" ""%1"""
+Root: HKCU; Subkey: "Software\Classes\Applications\EmulatorTM.exe\SupportedTypes"; ValueType: string; ValueName: ".myp"; ValueData: ""
+Root: HKLM; Subkey: "SOFTWARE\Microsoft\Windows NT\CurrentVersion\AppCompatFlags\Layers";ValueType: String; ValueName: "{app}\EmulatorTM.exe"; ValueData: "RUNASADMIN";  Flags: uninsdeletekeyifempty uninsdeletevalue; MinVersion: 0,6.1
 
 [Icons]
 Name: "{group}\EmulatorTM"; Filename: "{app}\EmulatorTM.exe"
-Name: "{autodesktop}\EmulatorTM"; Filename: "{app}\EmulatorTM.exe"; Tasks: desktopicon
+Name: "{userdesktop}\EmulatorTM"; Filename: "{app}\EmulatorTM.exe"; Tasks: desktopicon;  \
+  AfterInstall: SetElevationBit('{userdesktop}\EmulatorTM.lnk')
+  
+[Code]
+
+procedure SetElevationBit(Filename: string);
+var
+  Buffer: string;
+  Stream: TStream;
+begin
+  Filename := ExpandConstant(Filename);
+  Log('Setting elevation bit for ' + Filename);
+
+  Stream := TFileStream.Create(FileName, fmOpenReadWrite);
+  try
+    Stream.Seek(21, soFromBeginning);
+    SetLength(Buffer, 1);
+    Stream.ReadBuffer(Buffer, 1);
+    Buffer[1] := Chr(Ord(Buffer[1]) or $20);
+    Stream.Seek(-1, soFromCurrent);
+    Stream.WriteBuffer(Buffer, 1);
+  finally
+    Stream.Free;
+  end;
+end;
 
 [Run]
 Filename: "{app}\{#MyAppExeName}"; Description: "{cm:LaunchProgram,{#StringChange(MyAppName, '&', '&&')}}"; Flags: runascurrentuser nowait postinstall skipifsilent

@@ -1,0 +1,13 @@
+[Desktop Entry]
+Type=Application
+Version=1.0.0
+Name=Эмулятор плотности ТМ 
+Exec=/usr/share/EmulatorTM/EmulatorTM
+Icon=/usr/share/pixmaps/EmulatorTM.png
+Path=/usr/share/EmulatorTM
+Categories=Development;.
+Terminal=false
+StartupNotify=true
+Comment[ru]=Эмулятор плотности ТМ
+NoDisplay=false
+Hidden=false
